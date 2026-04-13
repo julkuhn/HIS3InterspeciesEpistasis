@@ -1,0 +1,100 @@
+pairformer/pairformer_weights/
+pairformer/pairformer_pkg/
+*.whl
+*.safetensors
+*.bin
+*.pt
+*.pth
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.ipynb_checkpoints/
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# HuggingFace / model caches
+**/models--*/
+.cache/
+**/.cache/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.h5
+
+# Packages
+*.whl
+*.tar.gz
+
+# Data (anpassen!)
+*.fasta
+*.a3m
+*.pdb
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / outputs
+*.log
+slurm-*.out
+wandb/
+
+# METL model checkpoints
+metl_rosetta/source_model/
+metl_rosetta/source_model_45k/
+metl_rosetta/source_model_45k_1D/
+metl_rosetta/target_model_45k/
+metl_rosetta/target_model_45k_1D/
+metl_rosetta/target_model_45k_v2/
+metl_rosetta/target_model_45k_v3/
+metl_rosetta/variant_lists/
+metl_rosetta/results/
+metl_rosetta/slurm/
+
+# Plots und Bilder
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.svg
+
+# Squashfs / Container images
+*.sqsh
+*.sif
+*.simg
+
+# Slurm logs
+slurm-*.out
+*.log
+
+# Geklonte externe Repos
+metl/
+metl-pub/
+metl-sim/
+metl-pretrained/
+his3_metl/
+esm/
+msa_transformer/
+pairformer/
+proteinNPT/
+
+# METL Rosetta outputs und Daten
+metl_rosetta/energize_outputs/
+metl_rosetta/logs/
+metl_rosetta/metl_splits/
+metl_rosetta/pdb_prepared/
+metl_rosetta/metl_data/
+metl_rosetta/pairformer_results/
+
+# Plots
+plots/
