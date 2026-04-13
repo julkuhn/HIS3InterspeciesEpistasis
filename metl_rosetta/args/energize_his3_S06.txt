@@ -1,0 +1,10 @@
+--pdb_fn
+/dss/dssfs02/lwp-dss-0001/pn67na/pn67na-dss-0000/ge28jel2/fopra/metl_rosetta/pdb_prepared/HIS7_YEAST_2026-02-14_15-47-02/HIS7_YEAST_p.pdb
+--relax_nstruct
+3
+--relax_repeats
+1
+--relax_distance_threshold
+8.0
+--out_dir_base
+/dss/dssfs02/lwp-dss-0001/pn67na/pn67na-dss-0000/ge28jel2/fopra/metl_rosetta/energize_outputs
