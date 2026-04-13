@@ -151,19 +151,6 @@ sbatch models/metl_local/slurm/pretrain/pretrain_local_45k.sh
 # Step 4: fine-tune on target split
 sbatch models/metl_local/slurm/finetune/finetune_local_45k_array.sh
 ```
-
-### 4. Analysis
-
-```bash
-# Compute metrics for all models and splits
-python analysis/compute_all_metrics.py
-
-# Generate plots
-python analysis/plot_distance_analysis.py
-python analysis/plot_extended_correlations.py
-python analysis/plot_factor_analysis.py
-```
-
 ---
 
 ## External Dependencies
@@ -176,6 +163,5 @@ The following repositories are cloned locally but not tracked in this repo:
 | [metl-pretrained](https://github.com/gitter-lab/metl-pretrained) | Pretrained METL checkpoints |
 | [metl-sim](https://github.com/gitter-lab/metl-sim) | Rosetta simulation pipeline |
 | [metl-pub](https://github.com/gitter-lab/metl-pub) | METL publication code |
-| [ESM](https://github.com/facebookresearch/esm) | ESM-2 / MSA Transformer |
+| [ESM](https://github.com/facebookresearch/esm) | ESM-2|
 | [ProteinNPT](https://github.com/OATML-Markslab/ProteinNPT) | ProteinNPT |
-| Pairformer | Structure-informed pairwise model |
