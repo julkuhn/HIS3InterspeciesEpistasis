@@ -1,111 +1,181 @@
 # Protein Fitness Prediction on Segmented, Genotype-Split HIS3 Fitness Landscape
 
 **Fortgeschrittenen-Praktikum Bioinformatik (IN5073) WS25/26 – Rostlab, TUM**
+
 ---
 
 ## Overview
 
-This repository contains the code, splits, and analysis for a benchmark of sequence-based protein fitness predictors on the HIS3 protein under a segmented, genotype-based out-of-distribution (OOD) split. The goal is to evaluate whether multiple sequence alignments (MSAs), pairwise coevolutionary signals, or 3D/biophysical features improve OOD generalization over a standard protein language model (PLM) when only shallow DMS training data is available.
+This project benchmarks sequence-based protein fitness predictors on the HIS3 protein (yeast imidazoleglycerol-phosphate dehydratase) under a segmented, genotype-based out-of-distribution (OOD) split. The central question is whether access to multiple sequence alignments (MSAs), pairwise coevolutionary signals, or 3D/biophysical features improves OOD generalization compared to a standard protein language model (ESM-2), given only shallow DMS training data.
+
+**Models benchmarked:**
+- ESM-2 (baseline PLM)
+- MSA Transformer (coevolutionary signal)
+- ProteinNPT (semi-supervised + MSA)
+- METL-Global (biophysical pretraining, sequence-only)
+- METL-Local (biophysical pretraining with Rosetta energies)
+- Pairformer (structure-informed pairwise features)
+
+---
 
 ## Dataset
 
-The final splits are published on Hugging Face:
+The processed splits are published on Hugging Face:
 **[julkuhn/HIS3InterspeciesEpistasis](https://huggingface.co/datasets/julkuhn/HIS3InterspeciesEpistasis)**
-483,609 multi-mutant HIS3 variants from ProteinGym (`HIS7_YEAST_Pokusaeva_2019`), segmented, genotype-based train/val/test split across 8 segments (S02–S08, S12)
 
+- 483,609 multi-mutant HIS3 variants from ProteinGym (`HIS7_YEAST_Pokusaeva_2019`)
+- Segmented, genotype-based train/val/test split across 8 segments (S02–S08, S12)
+- Each segment corresponds to a contiguous region of the protein; train/test splits are defined such that no genotype appears in both train and test (OOD by construction)
+
+**Original data sources:**
+- Pokusaeva et al. (2019). *PLoS Genet.* 15(4), e1008079.
+- Notin et al. (2023). *NeurIPS 2023 Datasets & Benchmarks* (ProteinGym).
+
+---
 
 ## Repository Structure
 
+Only scripts, configs, and analysis code are tracked. External repos, model weights, Rosetta outputs, embeddings, and result files are gitignored (see `.gitignore`).
+
 ```
 .
-├── analysis
-│   ├── compute_all_metrics.py
-│   ├── compute_functional_metrics.py
-│   ├── functional_metrics.csv
-│   ├── plot_distance_analysis.py
-│   ├── plot_extended_correlations.py
-│   └── plot_factor_analysis.py
-├── data
-│   └── preprocessing_yeast.ipynb
+├── analysis/                          # Metric computation and plotting
+│   ├── compute_all_metrics.py         # Aggregate Spearman/NDCG across all models and splits
+│   ├── compute_functional_metrics.py  # Per-split functional performance metrics
+│   ├── functional_metrics.csv         # Precomputed metric table
+│   ├── plot_distance_analysis.py      # Performance vs. sequence distance to train set
+│   ├── plot_extended_correlations.py  # Cross-model correlation plots
+│   └── plot_factor_analysis.py        # Factor/PCA analysis of predictions
+│
+├── data/
+│   └── preprocessing_yeast.ipynb      # Raw ProteinGym data → HIS3 splits
+│
+├── models/
+│   ├── esm/
+│   │   ├── run_esm.sh                 # ESM-2 embedding + linear probe (SLURM)
+│   │   └── run_esm_deepen.sh          # ESM-2 with deeper MLP head
+│   │
+│   ├── metl_global/
+│   │   └── run_metl_global.sh         # METL-Global fine-tuning (SLURM)
+│   │
+│   ├── metl_local/                    # METL-Local: Rosetta-pretrained, structure-aware
+│   │   ├── args/                      # Argument files for METL pretraining/fine-tuning
+│   │   │   ├── energize_his3_S06.txt
+│   │   │   ├── finetune_his3_S06.txt
+│   │   │   ├── finetune_his3_S06_1D.txt
+│   │   │   ├── finetune_his3_S06_linear_extract.txt
+│   │   │   ├── finetune_his3_S06_local.txt
+│   │   │   ├── finetune_his3_S08_3D.txt
+│   │   │   ├── finetune_his3_S08.txt
+│   │   │   ├── pretrain_his3_45k.txt
+│   │   │   ├── pretrain_his3_45k_1D.txt
+│   │   │   └── pretrain_his3_S06.txt
+│   │   ├── python/
+│   │   │   ├── create_rosetta_db.py   # Build SQLite variant database from Rosetta outputs
+│   │   │   └── prepare_metl_splits.py # Format splits for METL training
+│   │   └── slurm/
+│   │       ├── all_combined_jobs.sh
+│   │       ├── metl_local.sh
+│   │       ├── finetune/              # Fine-tuning job scripts (array + single)
+│   │       ├── pretrain/              # Pretraining job scripts
+│   │       └── rosetta/               # PDB prep, energize array, result processing
+│   │
+│   ├── msa_transformer/
+│   │   ├── msa_embed_checkpointed.py  # Memory-efficient MSA embedding with grad checkpointing
+│   │   ├── msa_transformer_baseline.py
+│   │   ├── run_msa_transformer.sh     # Per-split MSA Transformer runs (SLURM)
+│   │   └── run_msa_all_chained.sh     # Chain all segments sequentially
+│   │
+│   ├── pairformer/
+│   │   ├── pairformer_mlp.py          # MLP head on top of Pairformer pairwise embeddings
+│   │   └── run_pairformer.sh
+│   │
+│   └── proteinnpt/
+│       ├── protein_npt.py             # ProteinNPT wrapper / inference script
+│       ├── run_npt_inference.py
+│       └── run_protein_npt.sh
+│
+├── splits/
+│   ├── run_splitting.py               # Generate segmented genotype-split CSV files
+│   └── run_splitting.sh
+│
 ├── .gitignore
-├── models
-│   ├── esm
-│   │   ├── run_esm_deepen.sh
-│   │   └── run_esm.sh
-│   ├── metl_global
-│   │   └── run_metl_global.sh
-│   ├── metl_local
-│   │   ├── args
-│   │   │   ├── energize_his3_S06.txt
-│   │   │   ├── finetune_his3_S06_1D.txt
-│   │   │   ├── finetune_his3_S06_linear_extract.txt
-│   │   │   ├── finetune_his3_S06_local.txt
-│   │   │   ├── finetune_his3_S06.txt
-│   │   │   ├── finetune_his3_S08_3D.txt
-│   │   │   ├── finetune_his3_S08.txt
-│   │   │   ├── pretrain_his3_45k_1D.txt
-│   │   │   ├── pretrain_his3_45k.txt
-│   │   │   └── pretrain_his3_S06.txt
-│   │   ├── python
-│   │   │   ├── create_rosetta_db.py
-│   │   │   └── prepare_metl_splits.py
-│   │   └── slurm
-│   │       ├── all_combined_jobs.sh
-│   │       ├── finetune
-│   │       │   ├── 07_finetune_target6.sh
-│   │       │   ├── 07_finetune_target.sh
-│   │       │   ├── 08_finetune_S06_3D.sh
-│   │       │   ├── 08_finetune_S08_3D.sh
-│   │       │   ├── finetune_local_45k_1D_array.sh
-│   │       │   ├── finetune_local_45k_array.sh
-│   │       │   ├── finetune_local_45k_S05swap.sh
-│   │       │   ├── finetune_local_45k_S06.sh
-│   │       │   ├── finetune_local_45k_v2_array.sh
-│   │       │   ├── finetune_local_45k_v2_S05swap.sh
-│   │       │   ├── finetune_local_45k_v3_array.sh
-│   │       │   ├── finetune_local_45k_v3_S05swap.sh
-│   │       │   ├── finetune_local_linear_extract_S06.sh
-│   │       │   └── metl_target_train.sbatch
-│   │       ├── metl_local.sh
-│   │       ├── pretrain
-│   │       │   ├── 05_pretrain_source.sh
-│   │       │   ├── metl_source_train.sbatch
-│   │       │   ├── pretrain_local_45k_1D.sh
-│   │       │   └── pretrain_local_45k.sh
-│   │       └── rosetta
-│   │           ├── 02_prepare_pdb.sh
-│   │           ├── 03_energize_array.sh
-│   │           ├── 04_process_results.sh
-│   │           ├── rebuild_rosetta_db_45k.sh
-│   │           ├── rosetta_array.sbatch
-│   │           ├── rosetta_energize_array.sbatch
-│   │           ├── rosetta_energize.sbatch
-│   │           ├── rosetta_relax.sbatch
-│   │           └── rosetta_single.sbatch
-│   ├── msa_transformer
-│   │   ├── msa_embed_checkpointed.py
-│   │   ├── msa_transformer_baseline.py
-│   │   ├── run_msa_all_chained.sh
-│   │   └── run_msa_transformer.sh
-│   ├── pairformer
-│   │   ├── pairformer_mlp.py
-│   │   └── run_pairformer.sh
-│   └── proteinnpt
-│       ├── protein_npt.py
-│       ├── run_npt_inference.py
-│       └── run_protein_npt.sh
-├── README.md
-└── splits
-    ├── run_splitting.py
-    └── run_splitting.sh
-
-16 directories, 64 files
+└── README.md
 ```
 
-External repositories (METL, METL-sim, ESM, MSA Transformer, Pairformer, ProteinNPT) and model checkpoints are **not tracked**.
+**Gitignored (not tracked):**
 
-### Data
-Updated split is on Hugging Face. 
-Original data sources:
-- Pokusaeva et al. (2019). *PLoS Genet.* 15(4), e1008079.
-- Notin et al. (2023). *NeurIPS 2023 Datasets & Benchmarks*.
+| Path | Contents |
+|------|----------|
+| `/metl/`, `/metl-sim/`, `/metl-pretrained/`, `/metl-pub/` | Cloned METL repositories |
+| `/esm/`, `/msa_transformer/`, `/pairformer/`, `/proteinNPT/`, `/his3_metl/` | Cloned model repos + run outputs |
+| `metl_rosetta/` (most subdirs) | Rosetta energize outputs, model checkpoints, variant databases |
+| `plots/` | Generated figures |
+| `*.pt`, `*.safetensors`, `*.ckpt`, `*.pdb`, `*.a3m` | Model weights, structures, MSAs |
+
+---
+
+## Workflow
+
+### 1. Data Preprocessing
+
+Run `data/preprocessing_yeast.ipynb` to download the raw ProteinGym HIS3 data and produce a cleaned variant table.
+
+### 2. Split Generation
+
+```bash
+cd splits/
+bash run_splitting.sh
+```
+
+Produces per-segment train/val/test CSV files. The final version is also available directly from Hugging Face (see above).
+
+### 3. Model Training / Inference
+
+Each model has a dedicated subdirectory under `models/` with SLURM job scripts. The general pattern is:
+
+```bash
+# Example: ESM-2 baseline
+sbatch models/esm/run_esm.sh
+
+# Example: MSA Transformer (all segments chained)
+bash models/msa_transformer/run_msa_all_chained.sh
+
+# Example: METL-Local (requires Rosetta precomputation first)
+# Step 1: energize variants with Rosetta
+sbatch models/metl_local/slurm/rosetta/rosetta_energize_array.sbatch
+# Step 2: build the Rosetta DB
+python models/metl_local/python/create_rosetta_db.py
+# Step 3: pretrain source model
+sbatch models/metl_local/slurm/pretrain/pretrain_local_45k.sh
+# Step 4: fine-tune on target split
+sbatch models/metl_local/slurm/finetune/finetune_local_45k_array.sh
+```
+
+### 4. Analysis
+
+```bash
+# Compute metrics for all models and splits
+python analysis/compute_all_metrics.py
+
+# Generate plots
+python analysis/plot_distance_analysis.py
+python analysis/plot_extended_correlations.py
+python analysis/plot_factor_analysis.py
+```
+
+---
+
+## External Dependencies
+
+The following repositories are cloned locally but not tracked in this repo:
+
+| Repo | Purpose |
+|------|---------|
+| [METL](https://github.com/gitter-lab/metl) | METL training framework |
+| [metl-pretrained](https://github.com/gitter-lab/metl-pretrained) | Pretrained METL checkpoints |
+| [metl-sim](https://github.com/gitter-lab/metl-sim) | Rosetta simulation pipeline |
+| [metl-pub](https://github.com/gitter-lab/metl-pub) | METL publication code |
+| [ESM](https://github.com/facebookresearch/esm) | ESM-2 / MSA Transformer |
+| [ProteinNPT](https://github.com/OATML-Markslab/ProteinNPT) | ProteinNPT |
+| Pairformer | Structure-informed pairwise model |
