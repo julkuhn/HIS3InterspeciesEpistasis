@@ -82,15 +82,24 @@ The final splits are published on Hugging Face:
 │   │           ├── rosetta_energize.sbatch
 │   │           ├── rosetta_relax.sbatch
 │   │           └── rosetta_single.sbatch
-│   └── pairformer
-│       ├── pairformer_mlp.py
-│       └── run_pairformer.sh
+│   ├── msa_transformer
+│   │   ├── msa_embed_checkpointed.py
+│   │   ├── msa_transformer_baseline.py
+│   │   ├── run_msa_all_chained.sh
+│   │   └── run_msa_transformer.sh
+│   ├── pairformer
+│   │   ├── pairformer_mlp.py
+│   │   └── run_pairformer.sh
+│   └── proteinnpt
+│       ├── protein_npt.py
+│       ├── run_npt_inference.py
+│       └── run_protein_npt.sh
 ├── README.md
 └── splits
     ├── run_splitting.py
     └── run_splitting.sh
 
-14 directories, 57 files
+16 directories, 64 files
 ```
 
 External repositories (METL, METL-sim, ESM, MSA Transformer, Pairformer, ProteinNPT) and model checkpoints are **not tracked**.
