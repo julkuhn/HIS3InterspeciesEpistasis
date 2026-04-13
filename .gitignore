@@ -77,15 +77,15 @@ slurm-*.out
 *.log
 
 # Geklonte externe Repos
-metl/
-metl-pub/
-metl-sim/
-metl-pretrained/
-his3_metl/
+/metl/
+/metl-pub/
+/metl-sim/
+/metl-pretrained/
+/his3_metl/
 /esm/
-msa_transformer/
-pairformer/
-proteinNPT/
+/msa_transformer/
+/pairformer/
+/proteinNPT/
 
 # METL Rosetta outputs und Daten
 metl_rosetta/energize_outputs/
@@ -96,7 +96,7 @@ metl_rosetta/metl_data/
 metl_rosetta/pairformer_results/
 
 # Plots
-plots/
+/plots/
 
 # Slurm logs innerhalb von slurm/
 metl_rosetta/slurm/logs/
