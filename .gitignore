@@ -59,7 +59,6 @@ metl_rosetta/target_model_45k_v2/
 metl_rosetta/target_model_45k_v3/
 metl_rosetta/variant_lists/
 metl_rosetta/results/
-metl_rosetta/slurm/
 
 # Plots und Bilder
 *.png
@@ -83,7 +82,7 @@ metl-pub/
 metl-sim/
 metl-pretrained/
 his3_metl/
-esm/
+/esm/
 msa_transformer/
 pairformer/
 proteinNPT/
@@ -98,3 +97,8 @@ metl_rosetta/pairformer_results/
 
 # Plots
 plots/
+
+# Slurm logs innerhalb von slurm/
+metl_rosetta/slurm/logs/
+metl_rosetta/slurm/*.out
+metl_rosetta/slurm/*.err
